@@ -66,7 +66,7 @@ class AStar
 { ClosedList CLOSED;
     OpenList OPEN;
 public:
-    Result find_path(Node start, Node goal, Map grid, std::string metrictype="Octile", int connections=8, double hweight=1)
+    Result find_path(Node start, Node goal, Map grid, std::string metrictype="Euclidian", int connections=8, double hweight=1)
     {
        auto time_now = std::chrono::high_resolution_clock::now();
        Result result;
@@ -81,7 +81,7 @@ public:
             for (auto b: neig) {
 
                 if (!CLOSED.inClose(b.i, b.j)) {
-                    b.h = count_h_value(b, goal,metrictype);
+                    b.h = count_h_value(b, goal, "Euclidean");
                     if((abs((b.i-current.i)==1)) && (abs((b.j-current.j)==1)))
                     {
                         b.g = current.g + sqrt(2);
@@ -103,7 +103,7 @@ public:
                         std::chrono::high_resolution_clock::now() - time_now).count();
                 return result;
             }
-            static double count_h_value(Node current, Node goal, std::string metrictype = "Octile") {
+            static double count_h_value(Node current, Node goal, std::string metrictype = "Euclidean") {
                 double dx = abs(goal.i - current.i);
                 double dy = abs(goal.j - current.j);
                 if (metrictype=="Octile"){ // добавили диагональную метрику
