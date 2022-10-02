@@ -68,34 +68,25 @@ struct Map
     }
     std::vector<Node> get_neighbors(Node s, int connections=8)
     {
-        std::vector<std::pair<int, int>> delta = {{0,1}, {1,0}, {-1,0}, {0,-1}};
+        std::vector<std::pair<int, int>> deltas = {{0,1}, {1,0}, {-1,0}, {0,-1}};
         std::vector<Node> neighbors;
-        for(auto d:delta)
+        for(auto d:deltas)
         {
             Node n(s.i + d.first, s.j + d.second);
             if(cell_on_grid(n.i, n.j) && !cell_is_obstacle(n.i, n.j))
                 neighbors.push_back(n);
         }
-        std::vector<std::pair<int, int>> deltas = {{0,1}, {1,0}, {-1,0}, {0,-1}, {-1,1}, {1,-1}, {-1,-1}, {1,1}};
-        for(auto d:deltas)
-        if(connections==8) {
-            Node n(s.i + 1, s.j + 1);
-            if (cell_on_grid(n.i, n.j) && !cell_is_obstacle(n.i, n.j) && !cell_is_obstacle(n.i - 1, n.j) &&
-                !cell_is_obstacle(n.i, n.j - 1))
-                neighbors.push_back(n);
-            Node o(s.i + 1, s.j - 1);
-            if (cell_on_grid(o.i, o.j) && !cell_is_obstacle(o.i, o.j) && !cell_is_obstacle(o.i, o.j + 1) &&
-                !cell_is_obstacle(o.i - 1, o.j))
-                neighbors.push_back(o);
-            Node p(s.i - 1, s.j + 1);
-            if (cell_on_grid(p.i, p.j) && !cell_is_obstacle(p.i, p.j) && !cell_is_obstacle(p.i + 1, p.j) &&
-                !cell_is_obstacle(p.i, p.j - 1))
-                neighbors.push_back(p);
-            Node r(s.i - 1, s.j - 1);
-            if (cell_on_grid(r.i, r.j) && !cell_is_obstacle(r.i, r.j) && !cell_is_obstacle(r.i + 1, r.j) &&
-                !cell_is_obstacle(r.i, r.j + 1))
-                neighbors.push_back(r);
+
+        std::vector<std::pair<int, int>> diag_deltas = {{1,1}, {-1,1}, {1,-1}, {-1,-1}};
+        if (connections == 8) {
+            for (auto d: diag_deltas) {
+                Node n(s.i + d.first, s.j + d.second);
+                if (cell_on_grid(n.i, n.j) && !cell_is_obstacle(n.i, n.j))
+                    if (!cell_is_obstacle(s.i, n.j) && !cell_is_obstacle(n.i, s.j))
+                        neighbors.push_back(n);
+            }
         }
+
         return neighbors;
     }
     void print(std::list<Node> path={})
@@ -114,87 +105,6 @@ struct Map
         }
         for(auto n:path)
             grid[n.i][n.j] = TRAVERSABLE;
-    }
-};
-
-class OpenList
-{
-private:
-    std::list<Node> elements;
-
-public:
-    Node getMin()
-    {
-        return elements.front();
-    }
-    void popMin()
-    {
-        elements.pop_front();
-    }
-
-    int getSize()
-    {
-        return elements.size();
-    }
-
-    void addNode(Node node)
-    {
-        if(elements.empty())
-        {
-            elements.push_back(node);
-            return;
-        }
-        auto pos = elements.end();
-        bool posFound = false;
-        for (auto iter = elements.begin(); iter != elements.end(); ++iter)
-        {
-            if (!posFound && iter->f >= node.f)
-            {
-                pos = iter;
-                posFound = true;
-            }
-            if (iter->i == node.i && iter->j == node.j)
-            {
-                if (node.f >= iter->f)
-                    return;
-                else
-                {
-                    if (pos == iter)
-                    {
-                        iter->f = node.f;
-                        iter->g = node.g;
-                        iter->parent = node.parent;
-                        return;
-                    }
-                    elements.erase(iter);
-                    break;
-                }
-            }
-        }
-        elements.insert(pos, node);
-    }
-};
-
-class ClosedList
-{
-private:
-    std::map<std::pair<int, int>, Node> elements;
-public:
-    bool inClose(int i, int j)
-    {
-        return elements.find(std::make_pair(i,j)) != elements.end();
-    }
-    Node* getPointer(int i, int j)
-    {
-        return &elements.find(std::make_pair(i,j))->second;
-    }
-    void addClose(Node node)
-    {
-        elements.insert({std::make_pair(node.i, node.j), node});
-    }
-    int getSize()
-    {
-        return elements.size();
     }
 };
 
